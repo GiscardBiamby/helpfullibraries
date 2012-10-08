@@ -11,16 +11,18 @@ namespace Piedone.HelpfulLibraries.Contents.DynamicPages
         /// Creates a new page content items
         /// </summary>
         /// <param name="pageName">Name of the page</param>
+        /// <param name="group">String id of the group the page belongs to. Use this to distinct between a set of pages.</param>
         /// <param name="initializer">Delegate to run immediately after the page item is created</param>
         /// <param name="eventHandler">Page event handler</param>
-        public static IContent NewPage(this IContentManager contentManager, string pageName, Action<IContent> initializer, IPageEventHandler eventHandler)
+        public static IContent NewPage(this IContentManager contentManager, string pageName, string group, Action<IContent> initializer, IPageEventHandler eventHandler)
         {
-            var page = contentManager.New(contentManager.CreatePageName(pageName));
+            var page = contentManager.New(contentManager.CreatePageName(pageName, group));
 
             initializer(page);
 
-            eventHandler.OnPageInitializing(page);
-            eventHandler.OnPageInitialized(page);
+            var context = new PageContext(page, group);
+            eventHandler.OnPageInitializing(context);
+            eventHandler.OnPageInitialized(context);
 
             return page;
         }
@@ -29,15 +31,21 @@ namespace Piedone.HelpfulLibraries.Contents.DynamicPages
         /// Creates a new page content items
         /// </summary>
         /// <param name="pageName">Name of the page</param>
+        /// <param name="group">String id of the group the page belongs to. Use this to distinct between a set of pages.</param>
         /// <param name="eventHandler">Page event handler</param>
-        public static IContent NewPage(this IContentManager contentManager, string pageName, IPageEventHandler eventHandler)
+        public static IContent NewPage(this IContentManager contentManager, string pageName, string group, IPageEventHandler eventHandler)
         {
-            return contentManager.NewPage(pageName, (content) => { }, eventHandler);
+            return contentManager.NewPage(pageName, group, (content) => { }, eventHandler);
         }
 
-        public static string CreatePageName(this IContentManager contentManager, string pageName)
+        /// <summary>
+        /// Compiles a conventional name for a page
+        /// </summary>
+        /// <param name="pageName">Name of the page</param>
+        /// <param name="group">String id of the group the page belongs to. Use this to distinct between a set of pages.</param>
+        public static string CreatePageName(this IContentManager contentManager, string pageName, string group)
         {
-            return pageName + "Page";
+            return group + pageName + "Page";
         }
 
         /// <summary>
